@@ -4,51 +4,67 @@ from os import path
 import os
 
 
-def load_velodyne_points(file, drive, frame, **kwargs):
+def load_velodyne_points(file):
     points_path = file
     points = np.fromfile(points_path, dtype=np.float32).reshape(-1, 4)
     points = points[:, :3]
     return points
 
-
-def load_image():
-    im = Image.open("0000000000.png")
+def load_image(file):
+    im = Image.open(file)
     return im
 
-def create_lidar_image(point_cloud):
+
+def create_lidar_image(counter, point_cloud, image):
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.pyplot as plt
 
-    # point_cloud = [x for i, x in enumerate(point_cloud) if i % 6 == 0]
-    point_cloud = [point for point in point_cloud if point[2] >= 0]
+    rate = 2
+    point_cloud = [point for point in point_cloud if point[2] >= 3]
+    point_cloud = [point for i, point in enumerate(point_cloud) if i % rate == 0]
 
-    xs = [-x[0]/x[2] for x in point_cloud]
-    ys = [-x[1]/x[2] for x in point_cloud]
+    xs = [x[0]/x[2] for x in point_cloud]
+    ys = [x[1]/x[2] for x in point_cloud]
     zs = [x[2] for x in point_cloud]
 
-    max_color = max(zs)
-    zs = [(abs(z))**0.5  for z in zs] # ((max(0, 255 * z / max_color), ) * 3 + (255, )) for z in zs]
-    # zs = ['r' for z in zs]
 
+    max_color = max(zs)
+    # ((max(0, 255 * z / max_color), ) * 3 + (255, )) for z in zs]
+    zs = [(abs(z))**0.5 for z in zs]
+    zs = [(1, min(1.0, ((abs(z-3)/max_color) * 30)), 0)
+          for z in zs]
+
+    # zs = ['r' for z in zs]
+    plt.imshow(image)
+    plt.xlim(0, 1242)
+    plt.ylim = (-375, 0)
     plt.scatter(xs, ys, c=zs, s=1)
-    plt.show()
+    # plt.show(block=False)
+    # plt.pause(0.1)
+    # plt.close()
+    plt.savefig("output/{}.png".format(os.path.basename(counter)))
+
 
 def do(file):
-    points = load_velodyne_points(file, None, None)
-    image = load_image()
+    points = load_velodyne_points(file)
+    image = load_image(file.replace("velodyne_points", "image_03").replace("bin", "png"))
 
-    rotation_matrix = np.fromstring("7.533745e-03 -9.999714e-01 -6.166020e-04 1.480249e-02 7.280733e-04 -9.998902e-01 9.998621e-01 7.523790e-03 1.480755e-02", dtype="float32", sep = ' ')
+    rotation_matrix = np.fromstring(
+        "7.533745e-03 -9.999714e-01 -6.166020e-04 1.480249e-02 7.280733e-04 -9.998902e-01 9.998621e-01 7.523790e-03 1.480755e-02", dtype="float32", sep=' ')
     rotation_matrix = np.array(rotation_matrix)
     rotation_matrix = rotation_matrix.reshape((3, 3))
 
-    translation = np.array([[np.fromstring("-4.069766e-03 -7.631618e-02 -2.717806e-01", dtype="float32", sep = ' ')]])
+    translation = np.array([[np.fromstring(
+        "-4.069766e-03 -7.631618e-02 -2.717806e-01", dtype="float32", sep=' ')]])
     translation = translation.reshape(1, 3)
 
-    big_matrix = np.concatenate((rotation_matrix, np.transpose(translation)), 1)
+    big_matrix = np.concatenate(
+        (rotation_matrix, np.transpose(translation)), 1)
 
-    intrinsics_matrix = np.fromstring("7.215377e+02 0.000000e+00 6.095593e+02 4.485728e+01 0.000000e+00 7.215377e+02 1.728540e+02 2.163791e-01 0.000000e+00 0.000000e+00 1.000000e+00 2.745884e-03", dtype="float32", sep = ' ')
+    intrinsics_matrix = np.fromstring(
+        "7.215377e+02 0.000000e+00 6.095593e+02 4.485728e+01 0.000000e+00 7.215377e+02 1.728540e+02 2.163791e-01 0.000000e+00 0.000000e+00 1.000000e+00 2.745884e-03", dtype="float32", sep=' ')
     intrinsics_matrix = intrinsics_matrix.reshape((3, 4))
-    intrinsics_matrix = intrinsics_matrix[:,:3]
+    intrinsics_matrix = intrinsics_matrix[:, :3]
 
     points_camera = list()
     for point in points:
@@ -57,15 +73,17 @@ def do(file):
         point_camera = big_matrix.dot(point)
         point_camera = intrinsics_matrix.dot(point_camera)
         points_camera.append(point_camera)
-        
-    create_lidar_image(points_camera)
 
-# folder = "/Users/kowalski/Desktop/Imperial/Projet/data/data/2011_09_26_drive_0001_sync/velodyne_points/data"
-folder = "/Users/kowalski/Desktop/Imperial/Projet/data/python"
+    create_lidar_image(file, points_camera, image)
+
+
+folder = "/Users/kowalski/Downloads/2011_09_26 2/2011_09_26_drive_0005_sync/"
+# folder = "/Users/natalwillisch/Downloads"
 files = list()
-for file in os.listdir(folder):
+subfolder = "/velodyne_points/data/"
+for file in os.listdir(folder + subfolder):
     if ".bin" in file:
-        files.append(folder + "/" + file)
+        files.append(folder + subfolder + file)
 
 files.sort()
 for file in files:
