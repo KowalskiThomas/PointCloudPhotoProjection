@@ -1,0 +1,11 @@
+build
+cmake-build-debug
+.idea
+.vscode
+*.bin
+*.png
+.Python
+bin
+lib
+include
+.DS_Store
