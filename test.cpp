@@ -110,16 +110,17 @@ void project_image(const cv::Mat &image, std::vector<cv::Vec3f> points) {
                      return point.val[2] < 3;
                  }),
                  points.end());
+    assert(points[0].val[2] >= 3);
     // Divide points by their third coordinate
     std::transform(points.begin(), points.end(), points.begin(), [](decltype(points[0]) point) {
-        return cv::Vec3f (
-                point.val[0] / point.val[2],
-                point.val[1] / point.val[2],
-                point.val[2]);
+        point.val[0] = point.val[0] / point.val[2],
+        point.val[1] = point.val[1] / point.val[2],
+        point.val[2] = point.val[2];
+        return point;
     });
 
     // Get maximum third coordinate and create the colors
-    int max_z;
+    int max_z = 0;
     auto result = std::max_element(points.begin(), points.end(),
                                    [](decltype(points[0]) &pt1, decltype(points[0]) &pt2) {
                                        return pt1.val[2] < pt2.val[2];
@@ -127,36 +128,47 @@ void project_image(const cv::Mat &image, std::vector<cv::Vec3f> points) {
     if (result != points.end())
         max_z = (*result).val[2];
 
+    std::cout << "max z " << max_z << std::endl;
+
     std::transform(points.begin(), points.end(), points.begin(), [](decltype(points[0]) &point) {
         auto z = point.val[2];
         auto new_z = std::sqrt(std::abs(z));
-        return new_z;
+        point.val[2] = new_z;
+        return point;
     });
 
     auto colors = std::map<cv::Point, cv::Vec3b, compare_point>{};
     std::for_each(points.begin(), points.end(), [&colors, max_z](decltype(points[0]) point) {
-        auto z = point.val[2];
-        auto colour = cv::Vec3b{1,
-                                static_cast<unsigned char>(std::min(1, static_cast<int>(
-                                                                               static_cast<float>(std::abs(z - 3)) /
-                                                                               max_z) % 30)),
-                                0};
+        float z = point.val[2];
+        std::cout << z << " " << static_cast<int>(255 * static_cast<double>(std::abs(z - 3)) / max_z) % 30 << std::endl;
+        auto colour = cv::Vec3b(255,
+                                static_cast<unsigned char>(std::min(255, static_cast<int>(
+                                                                                 static_cast<double>(std::abs(z - 3)) /
+                                                                                 max_z) % 30)),
+                                0);
         auto key = cv::Point{static_cast<int>(point.val[0]), static_cast<int>(point.val[1])};
         colors.insert(std::make_pair(key, colour));
     });
 
+    auto output = image.clone();
     for (auto &pair : colors) {
-        std::cout << pair.first.x << " / " << pair.first.y << " : " << pair.second << std::endl;
+        // std::cout << pair.first.x << " / " << pair.first.y << " : " << pair.second << std::endl;
+        if (pair.first.x < 0 || pair.first.x >= output.rows)
+            continue;
+
+        if (pair.first.y < 0 || pair.first.y >= output.cols)
+            continue;
+
+        output.at<cv::Vec3b>(pair.first.x, pair.first.y) = pair.second;
     }
 
-    auto output = image.clone();
-    for (int i = 0; i < output.rows; i++) {
+/*    for (int i = 0; i < output.rows; i++) {
         for (int j = 0; j < output.cols; j++) {
             if (colors.find({i, j}) != colors.end()) {
-                output.at<cv::Vec3b>(cv::Point{i, j}) = colors[{i, j}];
+                output.at<cv::Vec3b>({i, j}) = colors[{i, j}];
             }
         }
-    }
+    }*/
     cv::imwrite("output.png", output);
 }
 
