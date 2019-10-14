@@ -4,6 +4,8 @@ project(tests)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_CXX_FLAGS x"-O3")
+
 find_package( OpenCV REQUIRED )
 set(boost_min_ver 1.50.0)
 set(boost_libs system filesystem)
