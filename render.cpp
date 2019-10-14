@@ -1,28 +1,16 @@
-#include <opencv2/opencv.hpp>
-#include <boost/filesystem.hpp>
+#include "defines.h"
 
-#include <algorithm>
-
-namespace fs = boost::filesystem;
-
-struct compare_point {
-    bool operator()(const cv::Point &p1, const cv::Point &p2) const {
-        if (p1.x < p2.x)
-            return true;
-        return p1.y < p2.y;
-    }
-};
-
+// TODO: Move that to an image_loader class
 cv::Mat load_image(const fs::path &path) {
     auto image = cv::imread(path.c_str());
     assert(!image.empty());
     return image;
 }
 
+// TODO: Move that to a point_cloud_loader class
 std::vector<cv::Vec3f> load_point_cloud(const fs::path &path) {
     // TODO: Make an okay version of this function
 
-    // allocate 4 MB buffer (only ~130*4*4 KB are needed)
     int32_t num = 1000000;
     float *data = (float *) malloc(num * sizeof(float));
 
@@ -50,12 +38,13 @@ std::vector<cv::Vec3f> load_point_cloud(const fs::path &path) {
     return point_cloud;
 }
 
+// TODO: Move that to a point_projector class
 std::vector<cv::Vec3f> project_points(const cv::Mat &image, const std::vector<cv::Vec3f> &point_cloud) {
     ///////// FIRST GET THE CALIBRATION RIGHT ///////
     float r_data[] = {7.533745e-03, -9.999714e-01, -6.166020e-04, 0,
                       1.480249e-02, 7.280733e-04, -9.998902e-01, 0,
                       9.998621e-01, 7.523790e-03, 1.480755e-02, 0};
-    // 0, 0, 0, 0};
+
     auto rotation_matrix = cv::Mat(3, 4, CV_32F, r_data);
 
     auto translation = cv::Mat(std::vector<float>{-4.069766e-03, -7.631618e-02, -2.717806e-01}).reshape(1, 3);
@@ -90,6 +79,7 @@ std::vector<cv::Vec3f> project_points(const cv::Mat &image, const std::vector<cv
 constexpr const bool prune_points = true;
 constexpr const size_t point_rate = 2;
 
+// TODO: Move that to an image_renderer class
 void project_image(fs::path file_name, const cv::Mat &image, std::vector<cv::Vec3f> points) {
     if constexpr (prune_points) {
         auto selected_points = decltype(points){};
@@ -155,6 +145,7 @@ void project_image(fs::path file_name, const cv::Mat &image, std::vector<cv::Vec
     cv::imwrite(output_path.string(), output);
 }
 
+// TODO: Move that to an animator class
 void create_animation() {
     auto path = fs::path{"/Users/kowalski/Downloads/LIDAR/2011_09_26 2/2011_09_26_drive_0005_sync/"};
     auto points_path = path / "/velodyne_points/data/";
