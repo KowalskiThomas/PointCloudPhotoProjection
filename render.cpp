@@ -1,41 +1,11 @@
 #include "defines.h"
+#include "point_cloud_loader.h"
 
 // TODO: Move that to an image_loader class
 cv::Mat load_image(const fs::path &path) {
     auto image = cv::imread(path.c_str());
     assert(!image.empty());
     return image;
-}
-
-// TODO: Move that to a point_cloud_loader class
-std::vector<cv::Vec3f> load_point_cloud(const fs::path &path) {
-    // TODO: Make an okay version of this function
-
-    int32_t num = 1000000;
-    float *data = (float *) malloc(num * sizeof(float));
-
-    // pointers
-    float *px = data + 0;
-    float *py = data + 1;
-    float *pz = data + 2;
-    float *pr = data + 3;
-
-    // load point cloud
-    FILE *stream;
-    stream = fopen(path.string().c_str(), "rb");
-    num = fread(data, sizeof(float), num, stream) / 4;
-    auto point_cloud = std::vector<cv::Vec3f>{};
-    for (int32_t i = 0; i < num; i++) {
-        point_cloud.emplace_back(cv::Vec3f(*px, *py, *pz));
-        px += 4;
-        py += 4;
-        pz += 4;
-        pr += 4;
-    }
-    fclose(stream);
-
-    assert(!point_cloud.empty());
-    return point_cloud;
 }
 
 // TODO: Move that to a point_projector class
@@ -147,9 +117,9 @@ void project_image(fs::path file_name, const cv::Mat &image, std::vector<cv::Vec
 
 // TODO: Move that to an animator class
 void create_animation() {
-    auto path = fs::path{"/Users/kowalski/Downloads/LIDAR/2011_09_26 2/2011_09_26_drive_0005_sync/"};
-    auto points_path = path / "/velodyne_points/data/";
-    auto images_path = path / "/image_02/data/";
+    auto path = fs::path{"/Users/kowalski/Desktop/Imperial/Projet/projection/data"};
+    auto points_path = path / "points/data";
+    auto images_path = path / "images/data";
 
     auto iterator = fs::directory_iterator(points_path);
     std::vector<fs::path> binary_files;
@@ -166,7 +136,7 @@ void create_animation() {
         auto image_file = file_name.replace_extension("png");
         auto image_path = images_path / image_file;
         auto image = load_image(image_path);
-        auto point_cloud = load_point_cloud(file_path);
+        auto point_cloud = point_cloud_loader::load(file_path);
         auto projected_cloud = project_points(image, point_cloud);
         project_image(file_name, image, projected_cloud);
         std::cout << file_path << std::endl;
