@@ -1,8 +1,8 @@
+import PIL
 from PIL import Image
 import numpy as np
-from os import path
 import os
-
+import matplotlib.pyplot as plt
 
 def load_velodyne_points(file):
     points_path = file
@@ -10,47 +10,67 @@ def load_velodyne_points(file):
     points = points[:, :3]
     return points
 
+
 def load_image(file):
     im = Image.open(file)
     return im
 
 
-def create_lidar_image(counter, point_cloud, image):
-    from mpl_toolkits.mplot3d import Axes3D
-    import matplotlib.pyplot as plt
+def create_lidar_image(counter, point_cloud, image: PIL.Image):
+    # rate = 2
+    # point_cloud = [point for i, point in enumerate(point_cloud) if i % rate == 0]
 
-    rate = 2
     point_cloud = [point for point in point_cloud if point[2] >= 3]
-    point_cloud = [point for i, point in enumerate(point_cloud) if i % rate == 0]
 
-    xs = [x[0]/x[2] for x in point_cloud]
-    ys = [x[1]/x[2] for x in point_cloud]
+    xs = [x[0] / x[2] for x in point_cloud]
+    ys = [x[1] / x[2] for x in point_cloud]
     zs = [x[2] for x in point_cloud]
-
 
     max_color = max(zs)
     # ((max(0, 255 * z / max_color), ) * 3 + (255, )) for z in zs]
-    zs = [(abs(z))**0.5 for z in zs]
-    zs = [(1, min(1.0, ((abs(z-3)/max_color) * 30)), 0)
+    zs = [(abs(z)) ** 0.5 for z in zs]
+    zs = [(1,
+           min(1.0, ((abs(z - 3) / max_color) * 30)),
+           0)
           for z in zs]
 
-    # zs = ['r' for z in zs]
-    plt.imshow(image)
-    plt.xlim(0, 1242)
-    plt.ylim = (-375, 0)
-    plt.scatter(xs, ys, c=zs, s=1)
-    # plt.show(block=False)
-    # plt.pause(0.1)
-    # plt.close()
-    plt.savefig("output/{}.png".format(os.path.basename(counter)))
+    tuples = [(x, y, z) for x, y, z in zip(xs, ys, zs)]
+
+    image = np.array(image)
+    for x, y, z in tuples:
+        x, y = map(int, (x, y))
+        if x < 0 or x >= image.shape[1]:
+            continue
+
+        if y < 0 or y >= image.shape[0]:
+            continue
+
+        image[y, x] = tuple(v * 255 for v in z)
+
+    image = PIL.Image.fromarray(np.uint8(image))
+
+    image.save("output/pil-{}.png".format(os.path.basename(counter)))
+
+    # # zs = ['r' for z in zs]
+    # plt.imshow(image)
+    # plt.xlim(0, 1242)
+    # plt.ylim = (-375, 0)
+    # plt.scatter(xs, ys, c=zs, s=1)
+    # plt.show(block=True)
+    # plt.pause(5)
+    # # plt.pause(0.1)
+    # # plt.close()
+    # plt.savefig("output/{}.png".format(os.path.basename(counter)))
+    # print(counter)
 
 
 def do(file):
     points = load_velodyne_points(file)
-    image = load_image(file.replace("velodyne_points", "image_03").replace("bin", "png"))
+    image = load_image(file.replace("velodyne_points", "image_02").replace("bin", "png"))
 
     rotation_matrix = np.fromstring(
-        "7.533745e-03 -9.999714e-01 -6.166020e-04 1.480249e-02 7.280733e-04 -9.998902e-01 9.998621e-01 7.523790e-03 1.480755e-02", dtype="float32", sep=' ')
+        "7.533745e-03 -9.999714e-01 -6.166020e-04 1.480249e-02 7.280733e-04 -9.998902e-01 9.998621e-01 7.523790e-03 1.480755e-02",
+        dtype="float32", sep=' ')
     rotation_matrix = np.array(rotation_matrix)
     rotation_matrix = rotation_matrix.reshape((3, 3))
 
@@ -62,7 +82,8 @@ def do(file):
         (rotation_matrix, np.transpose(translation)), 1)
 
     intrinsics_matrix = np.fromstring(
-        "7.215377e+02 0.000000e+00 6.095593e+02 4.485728e+01 0.000000e+00 7.215377e+02 1.728540e+02 2.163791e-01 0.000000e+00 0.000000e+00 1.000000e+00 2.745884e-03", dtype="float32", sep=' ')
+        "7.215377e+02 0.000000e+00 6.095593e+02 4.485728e+01 0.000000e+00 7.215377e+02 1.728540e+02 2.163791e-01 0.000000e+00 0.000000e+00 1.000000e+00 2.745884e-03",
+        dtype="float32", sep=' ')
     intrinsics_matrix = intrinsics_matrix.reshape((3, 4))
     intrinsics_matrix = intrinsics_matrix[:, :3]
 
@@ -77,7 +98,7 @@ def do(file):
     create_lidar_image(file, points_camera, image)
 
 
-folder = "/Users/kowalski/Downloads/2011_09_26 2/2011_09_26_drive_0005_sync/"
+folder = "/Users/kowalski/Downloads/LIDAR/2011_09_26 2/2011_09_26_drive_0005_sync/"
 # folder = "/Users/natalwillisch/Downloads"
 files = list()
 subfolder = "/velodyne_points/data/"
