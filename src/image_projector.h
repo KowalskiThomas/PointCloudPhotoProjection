@@ -8,6 +8,6 @@ class image_projector {
 
 public:
     // TODO: Make that return an image instead of writing it to disk
-    static void project_image(fs::path file_name, const cv::Mat &image, std::vector<cv::Vec3f> points);
+    static void project_image(fs::path file_name, const cv::Mat &image, std::vector <cv::Vec3f> points);
 };
 

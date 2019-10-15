@@ -10,7 +10,7 @@ void animator::create_animation(fs::path output_directory) {
     auto images_path = path / "images/data";
 
     auto iterator = fs::directory_iterator(points_path);
-    std::vector<fs::path> binary_files;
+    std::vector <fs::path> binary_files;
     for (; iterator != fs::directory_iterator{}; iterator++) {
         auto file = *iterator;
         auto path_string = file.path().string();

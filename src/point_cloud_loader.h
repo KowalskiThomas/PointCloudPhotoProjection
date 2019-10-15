@@ -9,12 +9,10 @@ private:
 
 public:
     point_cloud_loader(fs::path path)
-        : path(path)
-    {
+            : path(path) {
     }
 
-    std::vector<cv::Vec3f> load()
-    {
+    std::vector <cv::Vec3f> load() {
         // TODO: Make an okay version of this function
 
         int32_t num = 1000000;
@@ -30,7 +28,7 @@ public:
         FILE *stream;
         stream = fopen(path.string().c_str(), "rb");
         num = fread(data, sizeof(float), num, stream) / 4;
-        auto point_cloud = std::vector<cv::Vec3f>{};
+        auto point_cloud = std::vector < cv::Vec3f > {};
         for (int32_t i = 0; i < num; i++) {
             point_cloud.emplace_back(cv::Vec3f(*px, *py, *pz));
             px += 4;
@@ -44,5 +42,5 @@ public:
         return point_cloud;
     }
 
-    static std::vector<cv::Vec3f> load(const fs::path& path);
+    static std::vector <cv::Vec3f> load(const fs::path &path);
 };

@@ -1,6 +1,6 @@
 #include "image_projector.h"
 
-void image_projector::project_image(fs::path file_name, const cv::Mat &image, std::vector<cv::Vec3f> points) {
+void image_projector::project_image(fs::path file_name, const cv::Mat &image, std::vector <cv::Vec3f> points) {
     assert(!points.empty());
     if constexpr (prune_points) {
         auto selected_points = decltype(points){};
@@ -11,14 +11,12 @@ void image_projector::project_image(fs::path file_name, const cv::Mat &image, st
         points = selected_points;
     }
 
-    std::cout << "Initial size " << points.size() << std::endl;
     // Remove points behind us
     size_t count = points.size();
     points.erase(std::remove_if(points.begin(), points.end(), [&count](decltype(points[0]) point) {
                      return point.val[2] < 3;
                  }),
                  points.end());
-    std::cout << count - points.size() << " negative points removed" << std::endl;
 
     // Divide points by their third coordinate
     std::transform(points.begin(), points.end(), points.begin(), [](decltype(points[0]) point) {
@@ -45,7 +43,7 @@ void image_projector::project_image(fs::path file_name, const cv::Mat &image, st
     });
 
     size_t zzz = 0;
-    auto colors = std::map<cv::Point, cv::Vec3b, compare_point>{};
+    auto colors = std::map < cv::Point, cv::Vec3b, compare_point>{};
     std::for_each(points.begin(), points.end(), [&zzz, &colors, max_z](decltype(points[0]) point) {
         float z = point.val[2];
         auto blue = 30 * 255 * std::abs(z - 3) / max_z;
@@ -53,19 +51,10 @@ void image_projector::project_image(fs::path file_name, const cv::Mat &image, st
                                 cv::saturate_cast<unsigned char>(blue),
                                 255);
         auto key = cv::Point{static_cast<int>(point.val[0]), static_cast<int>(point.val[1])};
-        
-	colors.insert(std::make_pair(key, colour));
-	zzz++;
+
+        colors.insert(std::make_pair(key, colour));
     });
 
-    std::cout << zzz << " points projected" << std::endl;
-
-for(auto& pair : colors)
-{
-	// std::cout << pair.first.x << ", " << pair.first.y << " => " << pair.second << std::endl;
-}
-
-    zzz = 0;
     auto output = image.clone();
     for (auto &pair : colors) {
         if (pair.first.x < 0 || pair.first.x >= output.cols)
@@ -74,13 +63,11 @@ for(auto& pair : colors)
         if (pair.first.y < 0 || pair.first.y >= output.rows)
             continue;
 
-	zzz++;
         output.at<cv::Vec3b>(pair.first.y, pair.first.x) = pair.second;
     }
 
-    std::cout << zzz << " points written" << std::endl;
     auto output_path = file_name;
     if (file_name.extension() != "png")
-	    output_path = file_name.replace_extension("png");
+        output_path = file_name.replace_extension("png");
     cv::imwrite(output_path.string(), output);
 }
