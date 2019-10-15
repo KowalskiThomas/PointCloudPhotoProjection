@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(thomas)
 
 ## Find catkin and any catkin packages
-find_package(catkin REQUIRED COMPONENTS cv_bridge roscpp rospy std_msgs genmsg)
+find_package(catkin REQUIRED COMPONENTS PCL cv_bridge roscpp rospy std_msgs genmsg)
 
 ## Declare ROS messages and services
 #add_message_files(FILES Num.msg)

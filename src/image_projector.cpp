@@ -18,7 +18,7 @@ void image_projector::project_image(fs::path file_name, const cv::Mat &image, st
                      return point.val[2] < 3;
                  }),
                  points.end());
-    std::cout << count - points.size() << " points removed" << std::endl;
+    std::cout << count - points.size() << " negative points removed" << std::endl;
 
     // Divide points by their third coordinate
     std::transform(points.begin(), points.end(), points.begin(), [](decltype(points[0]) point) {
@@ -53,11 +53,17 @@ void image_projector::project_image(fs::path file_name, const cv::Mat &image, st
                                 cv::saturate_cast<unsigned char>(blue),
                                 255);
         auto key = cv::Point{static_cast<int>(point.val[0]), static_cast<int>(point.val[1])};
-        colors.insert(std::make_pair(key, colour));
+        
+	colors.insert(std::make_pair(key, colour));
 	zzz++;
     });
 
     std::cout << zzz << " points projected" << std::endl;
+
+for(auto& pair : colors)
+{
+	// std::cout << pair.first.x << ", " << pair.first.y << " => " << pair.second << std::endl;
+}
 
     zzz = 0;
     auto output = image.clone();
