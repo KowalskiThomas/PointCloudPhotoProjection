@@ -10,12 +10,13 @@ std::vector<cv::Vec3f> point_projector::project_points(const std::vector<cv::Vec
 
     auto projected_points = std::vector<cv::Vec3f>();
     for (const auto &point : point_cloud) {
-        auto projective_point = cv::Mat(1, 4, CV_32F, {point.val[0],
+        auto projective_point = cv::Mat(4, 1, CV_32F, {point.val[0],
                                           point.val[1],
                                           point.val[2],
                                           1});
-        cv::Mat result = intrinsics_matrix * transform_matrix * projective_point;
-        cv::Vec3f vector = result;
+	cv::Mat result1 = transform_matrix * projective_point;
+	cv::Mat result = intrinsics_matrix * result1;
+	cv::Vec3f vector = result;
         projected_points.push_back(result);
     }
     return projected_points;

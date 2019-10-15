@@ -9,11 +9,14 @@
 #include "const_data.h"
 #include "cv_bridge/cv_bridge.h"
 
-point_projector p_projector { rotation_matrix, translation, intrinsics_matrix };
-cv::Mat image;
+cv::Mat image(1, 1, CV_32F);
 
 std::vector<cv::Vec3f> convert_points(const sensor_msgs::PointCloud2& msg)
 {
+point_projector p_projector { rotation_matrix, translation, intrinsics_matrix };
+	if (image.rows == 1)
+		return {};
+
 	auto result = std::vector<cv::Vec3f>{};
 	auto in_x = sensor_msgs::PointCloud2ConstIterator<float>(msg, "x");
 	auto in_y = sensor_msgs::PointCloud2ConstIterator<float>(msg, "y");
@@ -24,10 +27,13 @@ std::vector<cv::Vec3f> convert_points(const sensor_msgs::PointCloud2& msg)
 		result.emplace_back(cv::Vec3f(*in_x, *in_y, *in_z));
 	}
 
+	std::cout << "Projecting" << std::endl;
 	auto projected_points = p_projector.project_points(result);
+	std::cout << "Projected points OK" << std::endl;
+
 
 	auto projector = image_projector{};
-	projector.project_image("output.png", image, result);
+	projector.project_image("/home/kowalski/Desktop/output.png", image, projected_points);
 
 
 	return result;
