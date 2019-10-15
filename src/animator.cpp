@@ -27,7 +27,7 @@ void animator::create_animation(fs::path output_directory) {
         auto image_path = images_path / image_file;
         auto image = image_loader::load_image(image_path);
         auto point_cloud = point_cloud_loader::load(file_path);
-        auto projected_cloud = projector.project_points(image, point_cloud);
+        auto projected_cloud = projector.project_points(point_cloud);
         image_projector::project_image(file_name, image, projected_cloud);
         std::cout << "Done with " << file_path << std::endl;
     }

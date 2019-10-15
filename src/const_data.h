@@ -1,6 +1,6 @@
+#include "defines.h"
 #pragma once
 
-#include "defines.h"
 
 float r_data[] = {7.533745e-03, -9.999714e-01, -6.166020e-04, 0,
                   1.480249e-02, 7.280733e-04, -9.998902e-01, 0,

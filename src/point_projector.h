@@ -21,5 +21,5 @@ public:
 
     }
 
-    std::vector<cv::Vec3f> project_points(const cv::Mat &image, const std::vector<cv::Vec3f> &point_cloud);
+    std::vector<cv::Vec3f> project_points(const std::vector<cv::Vec3f> &point_cloud);
 };

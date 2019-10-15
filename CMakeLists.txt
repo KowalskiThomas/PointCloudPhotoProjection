@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(thomas)
 
 ## Find catkin and any catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs genmsg)
+find_package(catkin REQUIRED COMPONENTS cv_bridge roscpp rospy std_msgs genmsg)
 
 ## Declare ROS messages and services
 #add_message_files(FILES Num.msg)
@@ -46,11 +46,9 @@ add_executable(render
         src/const_data.h)
 target_link_libraries(render ${OpenCV_LIBS} ${Boost_LIBRARIES})
 
-add_executable(tests tests.cpp defines.h)
-target_link_libraries(tests ${OpenCV_LIBS} ${Boost_LIBRARIES})
+# add_executable(tests tests.cpp defines.h)
+# target_link_libraries(tests ${OpenCV_LIBS} ${Boost_LIBRARIES})
 
-add_executable(stream stream.cpp defines.h)
-target_link_libraries(stream ${OpenCV_LIBS} ${Boost_LIBRARIES})
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
@@ -63,13 +61,11 @@ add_executable(listener
         src/image_projector.h
         src/point_projector.cpp
         src/point_projector.h
-        src/animator.cpp
-        src/animator.h
         src/image_loader.cpp
         src/image_loader.h
         src/const_data.h)
 
-target_link_libraries(decoder ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(listener ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES})
 add_dependencies(listener beginner_tutorials_generate_messages_cpp)
 
 
