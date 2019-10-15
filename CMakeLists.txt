@@ -68,6 +68,22 @@ add_executable(listener
 target_link_libraries(listener ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES})
 add_dependencies(listener beginner_tutorials_generate_messages_cpp)
 
+add_executable(mock_sender
+        src/mock_sender.cpp
+        src/defines.h
+        src/point_cloud_loader.cpp
+        src/point_cloud_loader.h
+        src/image_projector.cpp
+        src/image_projector.h
+        src/point_projector.cpp
+        src/point_projector.h
+        src/image_loader.cpp
+        src/image_loader.h
+        src/const_data.h)
+
+target_link_libraries(mock_sender ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES})
+add_dependencies(mock_sender beginner_tutorials_generate_messages_cpp)
+
 
 
 

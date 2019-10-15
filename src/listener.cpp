@@ -35,13 +35,14 @@ std::vector<cv::Vec3f> convert_points(const sensor_msgs::PointCloud2& msg)
 
 void callback_images(const sensor_msgs::Image& img)
 {
+	std::cout << "Received image" << std::endl;
 	auto image_ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::BGR8);
 	image_ptr->image.copyTo(image);
 }
 
 void callback(const sensor_msgs::PointCloud2& msg)
 {
-	std::cout << "I GOT SOMETHING" << std::endl;
+	std::cout << "Received points" << std::endl;
 	auto cloud = convert_points(msg);
 	std::cout << "PC Conversion Finished" << std::endl;
 }
@@ -50,7 +51,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "image_projector");
   ros::NodeHandle n;
-  ros::Subscriber sub_points = n.subscribe("image_points_couples", 1000, callback);
+  ros::Subscriber sub_points = n.subscribe("points", 1000, callback);
   ros::Subscriber sub_images = n.subscribe("images", 1000, callback_images);
   ros::spin();
 
