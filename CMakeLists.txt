@@ -22,5 +22,3 @@ target_link_libraries(render ${OpenCV_LIBS} ${Boost_LIBRARIES})
 add_executable(tests tests.cpp defines.h)
 target_link_libraries(tests ${OpenCV_LIBS} ${Boost_LIBRARIES})
 
-add_executable(stream stream.cpp defines.h)
-target_link_libraries(stream ${OpenCV_LIBS} ${Boost_LIBRARIES})
